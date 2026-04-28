@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, PieChart, Filter, Search, PlusCircle } from 'lucide-react';
+import { Users, PieChart, Filter, Search, PlusCircle, Calendar } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { EntrepreneurCard } from '../../components/entrepreneur/EntrepreneurCard';
+import { MeetingRequestCard } from '../../components/calendar/MeetingRequestCard';
 import { useAuth } from '../../context/AuthContext';
 import { Entrepreneur } from '../../types';
 import { entrepreneurs } from '../../data/users';
 import { getRequestsFromInvestor } from '../../data/collaborationRequests';
+import { getMeetingsForUser, getIncomingRequests } from '../../data/calendar';
 
 export const InvestorDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -182,6 +184,68 @@ export const InvestorDashboard: React.FC = () => {
           </CardBody>
         </Card>
       </div>
+
+      {/* Calendar Widget Row */}
+      {user && (() => {
+        const pending = getIncomingRequests(user.id);
+        const upcoming = getMeetingsForUser(user.id)
+          .filter(m => m.status === 'accepted' && m.date >= new Date().toISOString().split('T')[0])
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .slice(0, 2);
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader className="flex justify-between items-center">
+                <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <Calendar size={18} className="text-primary-600" />
+                  Pending Meeting Requests
+                </h2>
+                <Link to="/calendar" className="text-sm font-medium text-primary-600 hover:text-primary-500">
+                  Manage
+                </Link>
+              </CardHeader>
+              <CardBody>
+                {pending.length > 0 ? (
+                  <div className="space-y-3">
+                    {pending.slice(0, 2).map(m => (
+                      <MeetingRequestCard key={m.id} meeting={m} currentUserId={user.id} onStatusChange={() => {}} compact />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-gray-400">
+                    <p className="text-sm">No pending requests</p>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+            <Card>
+              <CardHeader className="flex justify-between items-center">
+                <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <Calendar size={18} className="text-emerald-500" />
+                  Upcoming Meetings
+                </h2>
+                <Link to="/calendar" className="text-sm font-medium text-primary-600 hover:text-primary-500">
+                  View all
+                </Link>
+              </CardHeader>
+              <CardBody>
+                {upcoming.length > 0 ? (
+                  <div className="space-y-3">
+                    {upcoming.map(m => (
+                      <MeetingRequestCard key={m.id} meeting={m} currentUserId={user.id} onStatusChange={() => {}} compact />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-gray-400">
+                    <p className="text-sm">No upcoming meetings</p>
+                    <Link to="/calendar" className="text-xs text-primary-600 hover:underline mt-1 block">Open calendar →</Link>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+          </div>
+        );
+      })()}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import Wallet from './pages/Wallet';
 
 // Layouts
 import { DashboardLayout } from './components/layout/DashboardLayout';
@@ -29,6 +30,12 @@ import { DealsPage } from './pages/deals/DealsPage';
 
 // Chat Pages
 import { ChatPage } from './pages/chat/ChatPage';
+
+// Calendar Pages
+import { CalendarPage } from './pages/calendar/CalendarPage';
+
+// Video Call Pages
+import { VideoCallPage } from './pages/videocall/VideoCallPage';
 
 function App() {
   return (
@@ -84,12 +91,26 @@ function App() {
             <Route index element={<DealsPage />} />
           </Route>
           
+          
           {/* Chat Routes */}
           <Route path="/chat" element={<DashboardLayout />}>
             <Route index element={<ChatPage />} />
             <Route path=":userId" element={<ChatPage />} />
           </Route>
           
+          {/* Calendar Routes */}
+          <Route path="/calendar" element={<DashboardLayout />}>
+            <Route index element={<CalendarPage />} />
+          </Route>
+
+          {/* Video Call Routes - no DashboardLayout, fullscreen */}
+          <Route path="/videocall" element={<VideoCallPage />} />
+          <Route path="/videocall/:userId" element={<VideoCallPage />} />
+
+          <Route path="/wallet" element={<Wallet />} />
+          
+        
+
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           

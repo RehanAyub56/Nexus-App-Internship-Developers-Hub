@@ -6,15 +6,18 @@ import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { CollaborationRequestCard } from '../../components/collaboration/CollaborationRequestCard';
 import { InvestorCard } from '../../components/investor/InvestorCard';
+import { MeetingRequestCard } from '../../components/calendar/MeetingRequestCard';
 import { useAuth } from '../../context/AuthContext';
 import { CollaborationRequest } from '../../types';
 import { getRequestsForEntrepreneur } from '../../data/collaborationRequests';
 import { investors } from '../../data/users';
+import { getMeetingsForUser } from '../../data/calendar';
 
 export const EntrepreneurDashboard: React.FC = () => {
   const { user } = useAuth();
   const [collaborationRequests, setCollaborationRequests] = useState<CollaborationRequest[]>([]);
   const [recommendedInvestors, setRecommendedInvestors] = useState(investors.slice(0, 3));
+  const [tick, setTick] = useState(0);
   
   useEffect(() => {
     if (user) {
@@ -165,6 +168,40 @@ export const EntrepreneurDashboard: React.FC = () => {
                   showActions={false}
                 />
               ))}
+            </CardBody>
+          </Card>
+
+          {/* Upcoming Meetings Widget */}
+          <Card>
+            <CardHeader className="flex justify-between items-center">
+              <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                <Calendar size={18} className="text-primary-600" />
+                Upcoming Meetings
+              </h2>
+              <Link to="/calendar" className="text-sm font-medium text-primary-600 hover:text-primary-500">
+                View calendar
+              </Link>
+            </CardHeader>
+            <CardBody>
+              {user && (() => {
+                const upcoming = getMeetingsForUser(user.id)
+                  .filter(m => m.status === 'accepted' && m.date >= new Date().toISOString().split('T')[0])
+                  .sort((a, b) => a.date.localeCompare(b.date))
+                  .slice(0, 2);
+                return upcoming.length > 0 ? (
+                  <div className="space-y-3">
+                    {upcoming.map(m => (
+                      <MeetingRequestCard key={m.id} meeting={m} currentUserId={user.id} onStatusChange={() => setTick(t => t + 1)} compact />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-gray-400">
+                    <Calendar size={24} className="mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">No upcoming meetings</p>
+                    <Link to="/calendar" className="text-xs text-primary-600 hover:underline mt-1 block">Set your availability →</Link>
+                  </div>
+                );
+              })()}
             </CardBody>
           </Card>
         </div>
